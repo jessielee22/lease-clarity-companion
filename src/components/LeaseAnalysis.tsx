@@ -4,14 +4,48 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, Calendar, DollarSign, FileText, MessageCircle, Info } from "lucide-react";
 import { useState } from "react";
 
-export const LeaseAnalysis = () => {
-  const [selectedJargon, setSelectedJargon] = useState<string | null>(null);
+interface LeaseAnalysisData {
+  overview: {
+    agreementType: string;
+    duration: string;
+    monthlyRent: string;
+    hiddenFees: string[];
+  };
+  responsibilities: {
+    tenant: string[];
+    landlord: string[];
+  };
+  keyDates: {
+    startDate: string;
+    endDate: string;
+    renewalDate: string;
+    noticeDeadline: string;
+  };
+  redFlags: {
+    category: string;
+    issue: string;
+    severity: 'high' | 'medium' | 'low';
+    explanation: string;
+  }[];
+  whatIfScenarios: {
+    earlyTermination: string;
+    latePayment: string;
+    maintenanceIssues: string;
+  };
+  tenantRights: string[];
+  legalJargon: {
+    term: string;
+    definition: string;
+    location: string;
+  }[];
+}
 
-  const jargonTerms = [
-    { term: "Joint and Several Liability", definition: "Each tenant is responsible for the full rent amount, not just their share. If a roommate doesn't pay, you could be held responsible for their portion." },
-    { term: "Security Deposit", definition: "Money held by the landlord as protection against damages. Must be returned within 21-30 days (varies by state) after move-out, minus any valid deductions." },
-    { term: "Sublet", definition: "When you rent your space to someone else while you're still on the lease. Usually requires landlord approval." },
-  ];
+interface LeaseAnalysisProps {
+  analysis: LeaseAnalysisData;
+}
+
+export const LeaseAnalysis = ({ analysis }: LeaseAnalysisProps) => {
+  const [selectedJargon, setSelectedJargon] = useState<string | null>(null);
 
   return (
     <section className="px-6 py-8 space-y-6">
@@ -166,6 +200,32 @@ export const LeaseAnalysis = () => {
                   {jargonTerms.find(t => t.term === selectedJargon)?.definition}
                 </p>
               </div>
+            ) : (
+              <p className="text-muted-foreground">No legal jargon identified.</p>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* Tenant Rights */}
+      <Card className="p-6 bg-secondary/5">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+            <Info className="h-6 w-6 text-secondary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-foreground mb-4">Know Your Rights</h3>
+            {analysis.tenantRights.length > 0 ? (
+              <ul className="space-y-2">
+                {analysis.tenantRights.map((right, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-secondary mt-1">✓</span>
+                    <span className="text-muted-foreground">{right}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground">No specific tenant rights identified.</p>
             )}
           </div>
         </div>
@@ -234,4 +294,11 @@ const ResponsibilityItem = ({ text }: { text: string }) => (
     <span className="text-primary">•</span>
     <span>{text}</span>
   </li>
+);
+
+const ScenarioCard = ({ question, answer }: { question: string; answer: string }) => (
+  <div className="p-4 rounded-lg border border-border/50 bg-muted/30">
+    <p className="font-medium text-foreground mb-2">{question}</p>
+    <p className="text-sm text-muted-foreground">{answer}</p>
+  </div>
 );

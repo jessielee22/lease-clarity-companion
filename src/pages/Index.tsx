@@ -4,6 +4,42 @@ import { LeaseUpload } from "@/components/LeaseUpload";
 import { LeaseAnalysis } from "@/components/LeaseAnalysis";
 import { PdfViewer } from "@/components/PdfViewer";
 
+interface LeaseAnalysisData {
+  overview: {
+    agreementType: string;
+    duration: string;
+    monthlyRent: string;
+    hiddenFees: string[];
+  };
+  responsibilities: {
+    tenant: string[];
+    landlord: string[];
+  };
+  keyDates: {
+    startDate: string;
+    endDate: string;
+    renewalDate: string;
+    noticeDeadline: string;
+  };
+  redFlags: {
+    category: string;
+    issue: string;
+    severity: 'high' | 'medium' | 'low';
+    explanation: string;
+  }[];
+  whatIfScenarios: {
+    earlyTermination: string;
+    latePayment: string;
+    maintenanceIssues: string;
+  };
+  tenantRights: string[];
+  legalJargon: {
+    term: string;
+    definition: string;
+    location: string;
+  }[];
+}
+
 const Index = () => {
   const [currentView, setCurrentView] = useState<"hero" | "upload" | "analysis">("hero");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -20,13 +56,9 @@ const Index = () => {
     setPdfUrl(url);
   };
 
-  const handleAnalyze = () => {
-    if (selectedFile) {
-      // In a real app, this would send the file to a backend for processing
-      setTimeout(() => {
-        setCurrentView("analysis");
-      }, 1000);
-    }
+  const handleAnalyze = (data: LeaseAnalysisData) => {
+    setAnalysisData(data);
+    setCurrentView("analysis");
   };
 
   return (
