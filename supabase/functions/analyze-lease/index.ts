@@ -21,31 +21,33 @@ serve(async (req) => {
       });
     }
 
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+    const apiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY is not configured');
+      console.error('LOVABLE_API_KEY is not configured');
       return new Response(JSON.stringify({ error: 'API key not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('Analyzing lease with Claude...');
+    console.log('Analyzing lease with AI...');
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 4096,
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
+            role: 'system',
+            content: 'You are Lease Fairy, an AI assistant that helps renters understand their lease agreements. Always respond with valid JSON only, no markdown.'
+          },
+          {
             role: 'user',
-            content: `You are Lease Fairy, an AI assistant that helps renters understand their lease agreements. Analyze this lease and provide a structured response in JSON format with the following sections:
+            content: `Analyze this lease and provide a structured response in JSON format with the following sections:
 
 {
   "overview": {
@@ -94,11 +96,13 @@ ${leaseText}`
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Claude API error:', response.status, error);
+      console.error('AI API error:', response.status, error);
       
       let errorMessage = 'Failed to analyze lease';
       if (response.status === 429) {
         errorMessage = 'Rate limit reached. Please wait a moment and try again.';
+      } else if (response.status === 402) {
+        errorMessage = 'Payment required. Please add credits to your workspace.';
       } else if (response.status === 401) {
         errorMessage = 'Invalid API key configuration';
       }
@@ -110,9 +114,9 @@ ${leaseText}`
     }
 
     const data = await response.json();
-    console.log('Claude response received');
+    console.log('AI response received');
     
-    const content = data.content[0].text;
+    const content = data.choices[0].message.content;
     
     // Extract JSON from response (Claude might wrap it in markdown)
     let analysis;
@@ -124,7 +128,7 @@ ${leaseText}`
         analysis = JSON.parse(content);
       }
     } catch (e) {
-      console.error('Failed to parse Claude response:', e);
+      console.error('Failed to parse AI response:', e);
       return new Response(JSON.stringify({ error: 'Failed to parse analysis', rawContent: content }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
