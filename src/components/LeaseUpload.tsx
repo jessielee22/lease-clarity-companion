@@ -6,10 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 interface LeaseUploadProps {
   onFileSelect: (file: File) => void;
   onAnalyze: () => void;
-  isAnalyzing?: boolean;
 }
 
-export const LeaseUpload = ({ onFileSelect, onAnalyze, isAnalyzing = false }: LeaseUploadProps) => {
+export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
@@ -128,9 +127,8 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze, isAnalyzing = false }: Le
               className="w-full bg-primary hover:bg-primary/90" 
               size="lg"
               onClick={onAnalyze}
-              disabled={isAnalyzing}
             >
-              {isAnalyzing ? "Analyzing..." : "Analyze My Lease"}
+              Analyze My Lease
             </Button>
           </div>
         )}
