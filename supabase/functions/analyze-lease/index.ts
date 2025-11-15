@@ -95,7 +95,15 @@ ${leaseText}`
     if (!response.ok) {
       const error = await response.text();
       console.error('Claude API error:', response.status, error);
-      return new Response(JSON.stringify({ error: 'Failed to analyze lease' }), {
+      
+      let errorMessage = 'Failed to analyze lease';
+      if (response.status === 429) {
+        errorMessage = 'Rate limit reached. Please wait a moment and try again.';
+      } else if (response.status === 401) {
+        errorMessage = 'Invalid API key configuration';
+      }
+      
+      return new Response(JSON.stringify({ error: errorMessage }), {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

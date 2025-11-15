@@ -66,7 +66,8 @@ const Index = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to analyze lease');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to analyze lease');
       }
 
       const data = await response.json();
@@ -74,7 +75,12 @@ const Index = () => {
       setCurrentView("analysis");
     } catch (error) {
       console.error('Error analyzing lease:', error);
-      alert('Failed to analyze lease. Please try again.');
+      const { toast } = await import('@/hooks/use-toast');
+      toast({
+        title: "Analysis failed",
+        description: error instanceof Error ? error.message : 'Failed to analyze lease. Please try again.',
+        variant: "destructive",
+      });
     } finally {
       setIsAnalyzing(false);
     }
