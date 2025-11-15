@@ -1,14 +1,15 @@
 import { useState, useCallback } from "react";
-import { Upload, FileText, X } from "lucide-react";
+import { Upload, FileText, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 interface LeaseUploadProps {
   onFileSelect: (file: File) => void;
   onAnalyze: () => void;
+  isAnalyzing?: boolean;
 }
 
-export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
+export const LeaseUpload = ({ onFileSelect, onAnalyze, isAnalyzing = false }: LeaseUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
@@ -65,7 +66,7 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
     <section className="max-w-2xl mx-auto px-4 py-12">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-foreground mb-3">Upload Your Lease</h2>
-        <p className="text-muted-foreground">Drop your PDF lease agreement below for instant analysis</p>
+        <p className="text-muted-foreground">Drop your PDF lease agreement below for instant AI analysis</p>
       </div>
 
       <div
@@ -100,6 +101,7 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
                 accept=".pdf"
                 className="hidden"
                 onChange={handleFileInput}
+                disabled={isAnalyzing}
               />
             </label>
             <p className="text-xs text-muted-foreground">PDF files only • Max 20MB</p>
@@ -118,18 +120,42 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={removeFile}>
-                <X className="h-4 w-4" />
-              </Button>
+              {!isAnalyzing && (
+                <Button variant="ghost" size="sm" onClick={removeFile}>
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
 
             <Button 
               className="w-full bg-primary hover:bg-primary/90" 
               size="lg"
               onClick={onAnalyze}
+              disabled={isAnalyzing}
             >
-              Analyze My Lease
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Analyzing with AI...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-5 w-5" />
+                  Analyze My Lease
+                </>
+              )}
             </Button>
+
+            {isAnalyzing && (
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Claude is reading your lease document...
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This may take 10-30 seconds
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

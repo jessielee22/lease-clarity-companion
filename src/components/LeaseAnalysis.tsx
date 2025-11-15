@@ -4,14 +4,46 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, Calendar, DollarSign, FileText, MessageCircle, Info } from "lucide-react";
 import { useState } from "react";
 
-export const LeaseAnalysis = () => {
-  const [selectedJargon, setSelectedJargon] = useState<string | null>(null);
+interface LeaseAnalysisProps {
+  analysisData: {
+    overview: {
+      agreementType: string;
+      duration: string;
+      monthlyRent: string;
+      startDate: string;
+      endDate: string;
+    };
+    responsibilities: {
+      tenant: string[];
+      landlord: string[];
+    };
+    keyDates: {
+      startDate: string;
+      endDate: string;
+      renewalDate: string;
+      noticeDeadline: string;
+    };
+    redFlags: {
+      category: string;
+      issue: string;
+      severity: 'high' | 'medium' | 'low';
+      explanation: string;
+    }[];
+    fees: {
+      name: string;
+      amount: string;
+      refundable: boolean;
+    }[];
+    legalJargon: {
+      term: string;
+      definition: string;
+      location: string;
+    }[];
+  };
+}
 
-  const jargonTerms = [
-    { term: "Joint and Several Liability", definition: "Each tenant is responsible for the full rent amount, not just their share. If a roommate doesn't pay, you could be held responsible for their portion." },
-    { term: "Security Deposit", definition: "Money held by the landlord as protection against damages. Must be returned within 21-30 days (varies by state) after move-out, minus any valid deductions." },
-    { term: "Sublet", definition: "When you rent your space to someone else while you're still on the lease. Usually requires landlord approval." },
-  ];
+export const LeaseAnalysis = ({ analysisData }: LeaseAnalysisProps) => {
+  const [selectedJargon, setSelectedJargon] = useState<string | null>(null);
 
   return (
     <section className="px-6 py-8 space-y-6">
@@ -29,37 +61,42 @@ export const LeaseAnalysis = () => {
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-foreground mb-3">Overview</h3>
             <div className="grid grid-cols-1 gap-3">
-              <InfoItem label="Agreement Type" value="Standard Residential Lease" />
-              <InfoItem label="Duration" value="12 months" />
-              <InfoItem label="Monthly Rent" value="$1,850" />
+              <InfoItem label="Agreement Type" value={analysisData.overview.agreementType} />
+              <InfoItem label="Duration" value={analysisData.overview.duration} />
+              <InfoItem label="Monthly Rent" value={analysisData.overview.monthlyRent} />
+              <InfoItem label="Start Date" value={analysisData.overview.startDate} />
+              <InfoItem label="End Date" value={analysisData.overview.endDate} />
             </div>
           </div>
         </div>
       </Card>
 
       {/* Red Flags */}
-      <Card className="p-4 border-warning/20 bg-warning/5">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
-            <AlertTriangle className="h-5 w-5 text-warning" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-foreground mb-3">Red Flags</h3>
-            <div className="space-y-2">
-              <RedFlag 
-                title="Automatic Renewal Clause"
-                description="Lease auto-renews unless you give 60 days notice."
-                severity="medium"
-              />
-              <RedFlag 
-                title="High Late Fee"
-                description="$75 late fee after 5 days (higher than typical)."
-                severity="high"
-              />
+      {analysisData.redFlags.length > 0 && (
+        <Card className="p-4 border-warning/20 bg-warning/5">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-foreground mb-3">
+                Red Flags Found ({analysisData.redFlags.length})
+              </h3>
+              <div className="space-y-2">
+                {analysisData.redFlags.map((flag, index) => (
+                  <RedFlag 
+                    key={index}
+                    title={flag.issue}
+                    description={flag.explanation}
+                    severity={flag.severity}
+                    category={flag.category}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Key Dates */}
       <Card className="p-4">
@@ -70,9 +107,18 @@ export const LeaseAnalysis = () => {
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-foreground mb-3">Important Dates</h3>
             <div className="space-y-2">
-              <DateItem date="Jan 1, 2025" event="Lease Start" />
-              <DateItem date="Nov 1, 2025" event="Notice Deadline" urgent />
-              <DateItem date="Dec 31, 2025" event="Lease End" />
+              <DateItem date={analysisData.keyDates.startDate} event="Lease Start" />
+              {analysisData.keyDates.noticeDeadline !== "Not specified in lease" && (
+                <DateItem 
+                  date={analysisData.keyDates.noticeDeadline} 
+                  event="Notice Deadline" 
+                  urgent 
+                />
+              )}
+              {analysisData.keyDates.renewalDate !== "Not specified in lease" && (
+                <DateItem date={analysisData.keyDates.renewalDate} event="Renewal Date" />
+              )}
+              <DateItem date={analysisData.keyDates.endDate} event="Lease End" />
             </div>
             <Button variant="outline" className="mt-3 w-full" size="sm">
               <Calendar className="h-4 w-4 mr-2" />
@@ -82,94 +128,104 @@ export const LeaseAnalysis = () => {
         </div>
       </Card>
 
-      {/* Hidden Fees */}
-      <Card className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
-            <DollarSign className="h-5 w-5 text-success" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-foreground mb-3">Fees & Costs</h3>
-            <div className="space-y-2">
-              <FeeItem name="Security Deposit" amount="$1,850" refundable />
-              <FeeItem name="Pet Deposit" amount="$500" refundable />
-              <FeeItem name="Application Fee" amount="$75" />
-              <FeeItem name="Late Payment" amount="$75" />
-              <FeeItem name="Early Termination" amount="2 months rent" />
+      {/* Fees & Costs */}
+      {analysisData.fees.length > 0 && (
+        <Card className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
+              <DollarSign className="h-5 w-5 text-success" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-foreground mb-3">Fees & Costs</h3>
+              <div className="space-y-2">
+                {analysisData.fees.map((fee, index) => (
+                  <FeeItem 
+                    key={index}
+                    name={fee.name} 
+                    amount={fee.amount} 
+                    refundable={fee.refundable} 
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Responsibilities */}
       <Card className="p-4">
         <h3 className="text-lg font-semibold text-foreground mb-4">Responsibilities</h3>
         <div className="space-y-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                <FileText className="h-3 w-3 text-primary" />
+          {analysisData.responsibilities.tenant.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-3 w-3 text-primary" />
+                </div>
+                <h4 className="font-semibold text-sm text-foreground">Tenant</h4>
               </div>
-              <h4 className="font-semibold text-sm text-foreground">Tenant</h4>
+              <ul className="space-y-1 ml-8">
+                {analysisData.responsibilities.tenant.map((item, index) => (
+                  <ResponsibilityItem key={index} text={item} />
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-1 ml-8">
-              <ResponsibilityItem text="Pay rent by 1st of month" />
-              <ResponsibilityItem text="Maintain cleanliness" />
-              <ResponsibilityItem text="Report issues within 24hrs" />
-              <ResponsibilityItem text="Obtain renter's insurance" />
-              <ResponsibilityItem text="No alterations without approval" />
-            </ul>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center">
-                <FileText className="h-3 w-3 text-secondary" />
+          )}
+          {analysisData.responsibilities.landlord.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center">
+                  <FileText className="h-3 w-3 text-secondary" />
+                </div>
+                <h4 className="font-semibold text-sm text-foreground">Landlord</h4>
               </div>
-              <h4 className="font-semibold text-sm text-foreground">Landlord</h4>
+              <ul className="space-y-1 ml-8">
+                {analysisData.responsibilities.landlord.map((item, index) => (
+                  <ResponsibilityItem key={index} text={item} />
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-1 ml-8">
-              <ResponsibilityItem text="Provide habitable conditions" />
-              <ResponsibilityItem text="Maintain systems" />
-              <ResponsibilityItem text="Repairs within 7 days" />
-              <ResponsibilityItem text="24hr notice before entry" />
-              <ResponsibilityItem text="Return deposit in 21 days" />
-            </ul>
-          </div>
+          )}
         </div>
       </Card>
 
       {/* Legal Jargon */}
-      <Card className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-            <Info className="h-5 w-5 text-accent" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-foreground mb-3">Legal Terms</h3>
-            <p className="text-xs text-muted-foreground mb-3">Click any term to see definition</p>
-            <div className="flex flex-wrap gap-2">
-              {jargonTerms.map((item) => (
-                <Badge
-                  key={item.term}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-accent/10 transition-colors px-2 py-1 text-xs"
-                  onClick={() => setSelectedJargon(item.term)}
-                >
-                  {item.term}
-                </Badge>
-              ))}
+      {analysisData.legalJargon.length > 0 && (
+        <Card className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+              <Info className="h-5 w-5 text-accent" />
             </div>
-            {selectedJargon && (
-              <div className="mt-3 p-3 bg-muted rounded-lg">
-                <p className="font-medium text-sm text-foreground mb-1">{selectedJargon}</p>
-                <p className="text-xs text-muted-foreground">
-                  {jargonTerms.find(t => t.term === selectedJargon)?.definition}
-                </p>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-foreground mb-3">Legal Terms</h3>
+              <p className="text-xs text-muted-foreground mb-3">Click any term to see definition</p>
+              <div className="flex flex-wrap gap-2">
+                {analysisData.legalJargon.map((item, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className="cursor-pointer hover:bg-accent/10 transition-colors px-2 py-1 text-xs"
+                    onClick={() => setSelectedJargon(item.term)}
+                  >
+                    {item.term}
+                  </Badge>
+                ))}
               </div>
-            )}
+              {selectedJargon && (
+                <div className="mt-3 p-3 bg-muted rounded-lg">
+                  <p className="font-medium text-sm text-foreground mb-1">{selectedJargon}</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {analysisData.legalJargon.find(t => t.term === selectedJargon)?.definition}
+                  </p>
+                  <p className="text-xs text-muted-foreground/70">
+                    Location: {analysisData.legalJargon.find(t => t.term === selectedJargon)?.location}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Chat with Lease Fairy */}
       <Card className="p-4 bg-gradient-to-br from-accent/5 to-secondary/5 border-accent/20">
@@ -198,12 +254,34 @@ const InfoItem = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const RedFlag = ({ title, description, severity }: { title: string; description: string; severity: "high" | "medium" }) => (
+const RedFlag = ({ 
+  title, 
+  description, 
+  severity, 
+  category 
+}: { 
+  title: string; 
+  description: string; 
+  severity: 'high' | 'medium' | 'low';
+  category: string;
+}) => (
   <div className="flex gap-2 p-3 bg-background rounded-lg border border-warning/20">
-    <AlertTriangle className={`h-4 w-4 flex-shrink-0 mt-0.5 ${severity === "high" ? "text-warning" : "text-warning/70"}`} />
-    <div>
-      <p className="font-medium text-sm text-foreground mb-0.5">{title}</p>
-      <p className="text-xs text-muted-foreground">{description}</p>
+    <AlertTriangle className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
+      severity === "high" ? "text-warning" : severity === "medium" ? "text-warning/70" : "text-warning/50"
+    }`} />
+    <div className="flex-1">
+      <div className="flex items-center gap-2 mb-1">
+        <p className="font-medium text-sm text-foreground">{title}</p>
+        <Badge variant="outline" className={`text-xs ${
+          severity === "high" ? "border-warning text-warning" : 
+          severity === "medium" ? "border-warning/70 text-warning/70" : 
+          "border-warning/50 text-warning/50"
+        }`}>
+          {severity}
+        </Badge>
+      </div>
+      <p className="text-xs text-muted-foreground mb-1">{description}</p>
+      <p className="text-xs text-muted-foreground/70">Category: {category}</p>
     </div>
   </div>
 );
@@ -219,7 +297,7 @@ const DateItem = ({ date, event, urgent }: { date: string; event: string; urgent
   </div>
 );
 
-const FeeItem = ({ name, amount, refundable }: { name: string; amount: string; refundable?: boolean }) => (
+const FeeItem = ({ name, amount, refundable }: { name: string; amount: string; refundable: boolean }) => (
   <div className="flex items-center justify-between p-2 bg-muted rounded-lg">
     <div className="flex items-center gap-2">
       <p className="font-medium text-sm text-foreground">{name}</p>
