@@ -1,69 +1,33 @@
-import { useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Hero } from "@/components/Hero";
-import { LeaseUpload } from "@/components/LeaseUpload";
-import { LeaseAnalysis } from "@/components/LeaseAnalysis";
-
-interface LeaseAnalysisData {
-  overview: {
-    agreementType: string;
-    duration: string;
-    monthlyRent: string;
-    hiddenFees: string[];
-  };
-  responsibilities: {
-    tenant: string[];
-    landlord: string[];
-  };
-  keyDates: {
-    startDate: string;
-    endDate: string;
-    renewalDate: string;
-    noticeDeadline: string;
-  };
-  redFlags: {
-    category: string;
-    issue: string;
-    severity: 'high' | 'medium' | 'low';
-    explanation: string;
-  }[];
-  whatIfScenarios: {
-    earlyTermination: string;
-    latePayment: string;
-    maintenanceIssues: string;
-  };
-  tenantRights: string[];
-  legalJargon: {
-    term: string;
-    definition: string;
-    location: string;
-  }[];
-}
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<"hero" | "upload" | "analysis">("hero");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [analysisData, setAnalysisData] = useState<LeaseAnalysisData | null>(null);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard');
+    }
+  }, [user, loading, navigate]);
 
   const handleUploadClick = () => {
-    setCurrentView("upload");
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
+    }
   };
 
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file);
-  };
-
-  const handleAnalyze = (data: LeaseAnalysisData) => {
-    setAnalysisData(data);
-    setCurrentView("analysis");
-  };
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <main className="min-h-screen bg-background">
-      {currentView === "hero" && <Hero onUploadClick={handleUploadClick} />}
-      {currentView === "upload" && (
-        <LeaseUpload onFileSelect={handleFileSelect} onAnalyze={handleAnalyze} />
-      )}
-      {currentView === "analysis" && analysisData && <LeaseAnalysis analysis={analysisData} />}
+      <Hero onUploadClick={handleUploadClick} />
     </main>
   );
 };
