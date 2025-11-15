@@ -101,6 +101,45 @@ export const LeaseAnalysis = () => {
         </div>
       </Card>
 
+      {/* Responsibilities */}
+      <Card className="p-6">
+        <h3 className="text-xl font-semibold text-foreground mb-6 text-center">Responsibilities</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <FileText className="h-4 w-4 text-primary" />
+              </div>
+              <h4 className="font-semibold text-foreground">Tenant Responsibilities</h4>
+            </div>
+            <ul className="space-y-2">
+              <ResponsibilityItem text="Pay rent on time by the 1st of each month" />
+              <ResponsibilityItem text="Maintain cleanliness and sanitation of the unit" />
+              <ResponsibilityItem text="Report maintenance issues within 24 hours" />
+              <ResponsibilityItem text="Obtain renter's insurance (minimum $100k coverage)" />
+              <ResponsibilityItem text="No alterations without written landlord approval" />
+              <ResponsibilityItem text="Comply with noise ordinances (quiet hours 10pm-7am)" />
+            </ul>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+                <FileText className="h-4 w-4 text-secondary" />
+              </div>
+              <h4 className="font-semibold text-foreground">Landlord Responsibilities</h4>
+            </div>
+            <ul className="space-y-2">
+              <ResponsibilityItem text="Provide habitable living conditions" />
+              <ResponsibilityItem text="Maintain heating, plumbing, and electrical systems" />
+              <ResponsibilityItem text="Address repairs within 7 days of notification" />
+              <ResponsibilityItem text="Provide 24-hour notice before entry (except emergencies)" />
+              <ResponsibilityItem text="Return security deposit within 21 days of move-out" />
+              <ResponsibilityItem text="Maintain common areas and exterior of building" />
+            </ul>
+          </div>
+        </div>
+      </Card>
+
       {/* Legal Jargon */}
       <Card className="p-6">
         <div className="flex items-start gap-4">
@@ -190,4 +229,11 @@ const FeeItem = ({ name, amount, refundable }: { name: string; amount: string; r
     </div>
     <p className="font-semibold text-foreground">{amount}</p>
   </div>
+);
+
+const ResponsibilityItem = ({ text }: { text: string }) => (
+  <li className="flex gap-2 text-sm text-muted-foreground">
+    <span className="text-primary mt-1">•</span>
+    <span>{text}</span>
+  </li>
 );
