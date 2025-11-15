@@ -5,12 +5,13 @@ import { useToast } from "@/hooks/use-toast";
 
 interface LeaseUploadProps {
   onFileSelect: (file: File) => void;
-  onAnalyze: () => void;
+  onAnalyze: (data: any) => void;
 }
 
 export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -59,6 +60,48 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
 
   const removeFile = () => {
     setFile(null);
+  };
+
+  const handleAnalyze = async () => {
+    if (!file) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-lease`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to analyze lease");
+      }
+
+      const { analysis } = await response.json();
+      onAnalyze(analysis);
+      
+      toast({
+        title: "Analysis complete!",
+        description: "Your lease has been analyzed successfully",
+      });
+    } catch (error) {
+      console.error("Error analyzing lease:", error);
+      toast({
+        title: "Analysis failed",
+        description: "There was an error analyzing your lease. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
