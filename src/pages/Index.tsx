@@ -3,9 +3,46 @@ import { Hero } from "@/components/Hero";
 import { LeaseUpload } from "@/components/LeaseUpload";
 import { LeaseAnalysis } from "@/components/LeaseAnalysis";
 
+interface LeaseAnalysisData {
+  overview: {
+    agreementType: string;
+    duration: string;
+    monthlyRent: string;
+    hiddenFees: string[];
+  };
+  responsibilities: {
+    tenant: string[];
+    landlord: string[];
+  };
+  keyDates: {
+    startDate: string;
+    endDate: string;
+    renewalDate: string;
+    noticeDeadline: string;
+  };
+  redFlags: {
+    category: string;
+    issue: string;
+    severity: 'high' | 'medium' | 'low';
+    explanation: string;
+  }[];
+  whatIfScenarios: {
+    earlyTermination: string;
+    latePayment: string;
+    maintenanceIssues: string;
+  };
+  tenantRights: string[];
+  legalJargon: {
+    term: string;
+    definition: string;
+    location: string;
+  }[];
+}
+
 const Index = () => {
   const [currentView, setCurrentView] = useState<"hero" | "upload" | "analysis">("hero");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [analysisData, setAnalysisData] = useState<LeaseAnalysisData | null>(null);
 
   const handleUploadClick = () => {
     setCurrentView("upload");
@@ -15,13 +52,9 @@ const Index = () => {
     setSelectedFile(file);
   };
 
-  const handleAnalyze = () => {
-    if (selectedFile) {
-      // In a real app, this would send the file to a backend for processing
-      setTimeout(() => {
-        setCurrentView("analysis");
-      }, 1000);
-    }
+  const handleAnalyze = (data: LeaseAnalysisData) => {
+    setAnalysisData(data);
+    setCurrentView("analysis");
   };
 
   return (
@@ -30,7 +63,7 @@ const Index = () => {
       {currentView === "upload" && (
         <LeaseUpload onFileSelect={handleFileSelect} onAnalyze={handleAnalyze} />
       )}
-      {currentView === "analysis" && <LeaseAnalysis />}
+      {currentView === "analysis" && analysisData && <LeaseAnalysis analysis={analysisData} />}
     </main>
   );
 };

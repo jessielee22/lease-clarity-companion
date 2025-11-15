@@ -4,14 +4,48 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, Calendar, DollarSign, FileText, MessageCircle, Info } from "lucide-react";
 import { useState } from "react";
 
-export const LeaseAnalysis = () => {
-  const [selectedJargon, setSelectedJargon] = useState<string | null>(null);
+interface LeaseAnalysisData {
+  overview: {
+    agreementType: string;
+    duration: string;
+    monthlyRent: string;
+    hiddenFees: string[];
+  };
+  responsibilities: {
+    tenant: string[];
+    landlord: string[];
+  };
+  keyDates: {
+    startDate: string;
+    endDate: string;
+    renewalDate: string;
+    noticeDeadline: string;
+  };
+  redFlags: {
+    category: string;
+    issue: string;
+    severity: 'high' | 'medium' | 'low';
+    explanation: string;
+  }[];
+  whatIfScenarios: {
+    earlyTermination: string;
+    latePayment: string;
+    maintenanceIssues: string;
+  };
+  tenantRights: string[];
+  legalJargon: {
+    term: string;
+    definition: string;
+    location: string;
+  }[];
+}
 
-  const jargonTerms = [
-    { term: "Joint and Several Liability", definition: "Each tenant is responsible for the full rent amount, not just their share. If a roommate doesn't pay, you could be held responsible for their portion." },
-    { term: "Security Deposit", definition: "Money held by the landlord as protection against damages. Must be returned within 21-30 days (varies by state) after move-out, minus any valid deductions." },
-    { term: "Sublet", definition: "When you rent your space to someone else while you're still on the lease. Usually requires landlord approval." },
-  ];
+interface LeaseAnalysisProps {
+  analysis: LeaseAnalysisData;
+}
+
+export const LeaseAnalysis = ({ analysis }: LeaseAnalysisProps) => {
+  const [selectedJargon, setSelectedJargon] = useState<string | null>(null);
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-12 space-y-8">
@@ -29,9 +63,9 @@ export const LeaseAnalysis = () => {
           <div>
             <h3 className="text-xl font-semibold text-foreground mb-2">Lease Overview</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-              <InfoItem label="Agreement Type" value="Standard Residential Lease" />
-              <InfoItem label="Duration" value="12 months" />
-              <InfoItem label="Monthly Rent" value="$1,850" />
+              <InfoItem label="Agreement Type" value={analysis.overview.agreementType} />
+              <InfoItem label="Duration" value={analysis.overview.duration} />
+              <InfoItem label="Monthly Rent" value={analysis.overview.monthlyRent} />
             </div>
           </div>
         </div>
@@ -45,18 +79,20 @@ export const LeaseAnalysis = () => {
           </div>
           <div className="flex-1">
             <h3 className="text-xl font-semibold text-foreground mb-4">Red Flags Found</h3>
-            <div className="space-y-3">
-              <RedFlag 
-                title="Automatic Renewal Clause"
-                description="Your lease automatically renews unless you give 60 days notice. Mark your calendar for the deadline."
-                severity="medium"
-              />
-              <RedFlag 
-                title="Late Fee Policy"
-                description="$75 late fee applies after 5 days. This is higher than typical market rates (usually $50)."
-                severity="high"
-              />
-            </div>
+            {analysis.redFlags.length > 0 ? (
+              <div className="space-y-3">
+                {analysis.redFlags.map((flag, idx) => (
+                  <RedFlag 
+                    key={idx}
+                    title={flag.issue}
+                    description={flag.explanation}
+                    severity={flag.severity}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No red flags identified in this lease.</p>
+            )}
           </div>
         </div>
       </Card>
@@ -70,14 +106,19 @@ export const LeaseAnalysis = () => {
           <div className="flex-1">
             <h3 className="text-xl font-semibold text-foreground mb-4">Important Dates</h3>
             <div className="space-y-3">
-              <DateItem date="Jan 1, 2025" event="Lease Start Date" />
-              <DateItem date="Nov 1, 2025" event="Notice Deadline for Non-Renewal" urgent />
-              <DateItem date="Dec 31, 2025" event="Lease End Date" />
+              {analysis.keyDates.startDate !== "Not specified" && (
+                <DateItem date={analysis.keyDates.startDate} event="Lease Start Date" />
+              )}
+              {analysis.keyDates.noticeDeadline !== "Not specified" && (
+                <DateItem date={analysis.keyDates.noticeDeadline} event="Notice Deadline" urgent />
+              )}
+              {analysis.keyDates.renewalDate !== "Not specified" && (
+                <DateItem date={analysis.keyDates.renewalDate} event="Renewal Date" />
+              )}
+              {analysis.keyDates.endDate !== "Not specified" && (
+                <DateItem date={analysis.keyDates.endDate} event="Lease End Date" />
+              )}
             </div>
-            <Button variant="outline" className="mt-4" size="sm">
-              <Calendar className="h-4 w-4 mr-2" />
-              Set Reminders
-            </Button>
           </div>
         </div>
       </Card>
@@ -89,14 +130,18 @@ export const LeaseAnalysis = () => {
             <DollarSign className="h-6 w-6 text-success" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Potential Fees & Costs</h3>
-            <div className="space-y-2">
-              <FeeItem name="Security Deposit" amount="$1,850" refundable />
-              <FeeItem name="Pet Deposit" amount="$500" refundable />
-              <FeeItem name="Application Fee" amount="$75" />
-              <FeeItem name="Late Payment Fee" amount="$75" />
-              <FeeItem name="Early Termination Fee" amount="2 months rent" />
-            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-4">Hidden Fees & Charges</h3>
+            {analysis.overview.hiddenFees.length > 0 ? (
+              <div className="space-y-2">
+                {analysis.overview.hiddenFees.map((fee, idx) => (
+                  <div key={idx} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0">
+                    <span className="text-foreground">{fee}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No hidden fees identified.</p>
+            )}
           </div>
         </div>
       </Card>
@@ -112,14 +157,15 @@ export const LeaseAnalysis = () => {
               </div>
               <h4 className="font-semibold text-foreground">Tenant Responsibilities</h4>
             </div>
-            <ul className="space-y-2">
-              <ResponsibilityItem text="Pay rent on time by the 1st of each month" />
-              <ResponsibilityItem text="Maintain cleanliness and sanitation of the unit" />
-              <ResponsibilityItem text="Report maintenance issues within 24 hours" />
-              <ResponsibilityItem text="Obtain renter's insurance (minimum $100k coverage)" />
-              <ResponsibilityItem text="No alterations without written landlord approval" />
-              <ResponsibilityItem text="Comply with noise ordinances (quiet hours 10pm-7am)" />
-            </ul>
+            {analysis.responsibilities.tenant.length > 0 ? (
+              <ul className="space-y-2">
+                {analysis.responsibilities.tenant.map((resp, idx) => (
+                  <ResponsibilityItem key={idx} text={resp} />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground text-sm">No tenant responsibilities specified.</p>
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2 mb-4">
@@ -128,14 +174,41 @@ export const LeaseAnalysis = () => {
               </div>
               <h4 className="font-semibold text-foreground">Landlord Responsibilities</h4>
             </div>
-            <ul className="space-y-2">
-              <ResponsibilityItem text="Provide habitable living conditions" />
-              <ResponsibilityItem text="Maintain heating, plumbing, and electrical systems" />
-              <ResponsibilityItem text="Address repairs within 7 days of notification" />
-              <ResponsibilityItem text="Provide 24-hour notice before entry (except emergencies)" />
-              <ResponsibilityItem text="Return security deposit within 21 days of move-out" />
-              <ResponsibilityItem text="Maintain common areas and exterior of building" />
-            </ul>
+            {analysis.responsibilities.landlord.length > 0 ? (
+              <ul className="space-y-2">
+                {analysis.responsibilities.landlord.map((resp, idx) => (
+                  <ResponsibilityItem key={idx} text={resp} />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground text-sm">No landlord responsibilities specified.</p>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* What If Scenarios */}
+      <Card className="p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+            <MessageCircle className="h-6 w-6 text-accent" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-foreground mb-4">What If Scenarios</h3>
+            <div className="space-y-4">
+              <ScenarioCard 
+                question="What if I need to break my lease early?"
+                answer={analysis.whatIfScenarios.earlyTermination}
+              />
+              <ScenarioCard 
+                question="What if I pay rent late?"
+                answer={analysis.whatIfScenarios.latePayment}
+              />
+              <ScenarioCard 
+                question="What if something breaks?"
+                answer={analysis.whatIfScenarios.maintenanceIssues}
+              />
+            </div>
           </div>
         </div>
       </Card>
@@ -147,27 +220,54 @@ export const LeaseAnalysis = () => {
             <Info className="h-6 w-6 text-accent" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Legal Terms Explained</h3>
-            <p className="text-sm text-muted-foreground mb-4">Click on any term to see what it means</p>
-            <div className="flex flex-wrap gap-2">
-              {jargonTerms.map((item) => (
-                <Badge
-                  key={item.term}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-accent/10 transition-colors px-3 py-1"
-                  onClick={() => setSelectedJargon(item.term)}
-                >
-                  {item.term}
-                </Badge>
-              ))}
-            </div>
-            {selectedJargon && (
-              <div className="mt-4 p-4 bg-muted rounded-lg">
-                <p className="font-medium text-foreground mb-2">{selectedJargon}</p>
-                <p className="text-sm text-muted-foreground">
-                  {jargonTerms.find(t => t.term === selectedJargon)?.definition}
-                </p>
+            <h3 className="text-xl font-semibold text-foreground mb-4">Legal Jargon Translator</h3>
+            {analysis.legalJargon.length > 0 ? (
+              <div className="space-y-3">
+                {analysis.legalJargon.map((item, idx) => (
+                  <div 
+                    key={idx}
+                    className="p-4 rounded-lg border border-border/50 hover:border-accent/50 transition-colors cursor-pointer"
+                    onClick={() => setSelectedJargon(selectedJargon === item.term ? null : item.term)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-foreground">{item.term}</span>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    {selectedJargon === item.term && (
+                      <>
+                        <p className="mt-2 text-sm text-muted-foreground">{item.definition}</p>
+                        <p className="mt-1 text-xs text-muted-foreground/70">Found in: {item.location}</p>
+                      </>
+                    )}
+                  </div>
+                ))}
               </div>
+            ) : (
+              <p className="text-muted-foreground">No legal jargon identified.</p>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* Tenant Rights */}
+      <Card className="p-6 bg-secondary/5">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+            <Info className="h-6 w-6 text-secondary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-foreground mb-4">Know Your Rights</h3>
+            {analysis.tenantRights.length > 0 ? (
+              <ul className="space-y-2">
+                {analysis.tenantRights.map((right, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-secondary mt-1">✓</span>
+                    <span className="text-muted-foreground">{right}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground">No specific tenant rights identified.</p>
             )}
           </div>
         </div>
@@ -200,9 +300,9 @@ const InfoItem = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const RedFlag = ({ title, description, severity }: { title: string; description: string; severity: "high" | "medium" }) => (
+const RedFlag = ({ title, description, severity }: { title: string; description: string; severity: "high" | "medium" | "low" }) => (
   <div className="flex gap-3 p-4 bg-background rounded-lg border border-warning/20">
-    <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${severity === "high" ? "text-warning" : "text-warning/70"}`} />
+    <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${severity === "high" ? "text-warning" : severity === "medium" ? "text-warning/70" : "text-warning/50"}`} />
     <div>
       <p className="font-medium text-foreground mb-1">{title}</p>
       <p className="text-sm text-muted-foreground">{description}</p>
@@ -221,19 +321,16 @@ const DateItem = ({ date, event, urgent }: { date: string; event: string; urgent
   </div>
 );
 
-const FeeItem = ({ name, amount, refundable }: { name: string; amount: string; refundable?: boolean }) => (
-  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-    <div className="flex items-center gap-2">
-      <p className="font-medium text-foreground">{name}</p>
-      {refundable && <Badge variant="outline" className="border-success text-success text-xs">Refundable</Badge>}
-    </div>
-    <p className="font-semibold text-foreground">{amount}</p>
-  </div>
-);
-
 const ResponsibilityItem = ({ text }: { text: string }) => (
   <li className="flex gap-2 text-sm text-muted-foreground">
     <span className="text-primary mt-1">•</span>
     <span>{text}</span>
   </li>
+);
+
+const ScenarioCard = ({ question, answer }: { question: string; answer: string }) => (
+  <div className="p-4 rounded-lg border border-border/50 bg-muted/30">
+    <p className="font-medium text-foreground mb-2">{question}</p>
+    <p className="text-sm text-muted-foreground">{answer}</p>
+  </div>
 );

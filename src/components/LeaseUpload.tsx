@@ -1,16 +1,54 @@
 import { useState, useCallback } from "react";
-import { Upload, FileText, X } from "lucide-react";
+import { Upload, FileText, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface LeaseAnalysisData {
+  overview: {
+    agreementType: string;
+    duration: string;
+    monthlyRent: string;
+    hiddenFees: string[];
+  };
+  responsibilities: {
+    tenant: string[];
+    landlord: string[];
+  };
+  keyDates: {
+    startDate: string;
+    endDate: string;
+    renewalDate: string;
+    noticeDeadline: string;
+  };
+  redFlags: {
+    category: string;
+    issue: string;
+    severity: 'high' | 'medium' | 'low';
+    explanation: string;
+  }[];
+  whatIfScenarios: {
+    earlyTermination: string;
+    latePayment: string;
+    maintenanceIssues: string;
+  };
+  tenantRights: string[];
+  legalJargon: {
+    term: string;
+    definition: string;
+    location: string;
+  }[];
+}
 
 interface LeaseUploadProps {
   onFileSelect: (file: File) => void;
-  onAnalyze: () => void;
+  onAnalyze: (data: LeaseAnalysisData) => void;
 }
 
 export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -59,6 +97,41 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
 
   const removeFile = () => {
     setFile(null);
+  };
+
+  const handleAnalyze = async () => {
+    if (!file) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const { data, error } = await supabase.functions.invoke('analyze-lease', {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.analysis) {
+        toast({
+          title: "Analysis complete!",
+          description: "Your lease has been analyzed successfully.",
+        });
+        onAnalyze(data.analysis);
+      } else {
+        throw new Error(data.error || 'Analysis failed');
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast({
+        title: "Analysis failed",
+        description: error instanceof Error ? error.message : "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -118,7 +191,7 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={removeFile}>
+              <Button variant="ghost" size="sm" onClick={removeFile} disabled={isAnalyzing}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -126,9 +199,17 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
             <Button 
               className="w-full bg-primary hover:bg-primary/90" 
               size="lg"
-              onClick={onAnalyze}
+              onClick={handleAnalyze}
+              disabled={isAnalyzing}
             >
-              Analyze My Lease
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing Lease...
+                </>
+              ) : (
+                'Analyze My Lease'
+              )}
             </Button>
           </div>
         )}
