@@ -1,10 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import logoImage from "@/assets/lease-fairy-logo.png";
+import heroBackground from "@/assets/stock.jpg";
 
 export const Hero = ({ onUploadClick }: { onUploadClick: () => void }) => {
   return (
-    <section className="min-h-[90vh] flex items-center justify-center px-4 py-12">
+    <section className="min-h-[90vh] flex items-center justify-center px-4 py-12"
+      className="min-h-[90vh] flex items-center justify-center px-4 py-12 bg-cover bg-center"
+      style={{ backgroundImage: `url(${heroBackground})` }}
+    >
       <div className="max-w-4xl mx-auto text-center space-y-8">
         <div className="flex justify-center mb-6">
           <img 
@@ -13,6 +17,7 @@ export const Hero = ({ onUploadClick }: { onUploadClick: () => void }) => {
             className="w-64 h-auto animate-in fade-in slide-in-from-bottom-4 duration-700"
           />
         </div>
+        
         
         <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
           Understand Your Lease, <br />
