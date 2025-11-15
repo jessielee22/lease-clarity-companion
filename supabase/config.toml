@@ -1,4 +1,0 @@
-project_id = "xdvnrkvylwbllhxweomq"
-
-[functions.analyze-lease]
-verify_jwt = false
