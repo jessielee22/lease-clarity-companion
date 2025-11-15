@@ -10,52 +10,59 @@ export const useAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    // Check for mock session in localStorage for prototype
+    const mockSessionStr = localStorage.getItem('mock-session');
+    if (mockSessionStr) {
+      try {
+        const mockSession = JSON.parse(mockSessionStr);
+        setSession(mockSession);
+        setUser(mockSession.user);
+      } catch (e) {
+        console.error('Failed to parse mock session');
       }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    // Mock authentication - accept any credentials for prototype
+    const mockUser = {
+      id: 'mock-user-id',
+      email: email,
+      aud: 'authenticated',
+      role: 'authenticated',
+      created_at: new Date().toISOString(),
+      app_metadata: {},
+      user_metadata: {},
+    } as User;
+
+    const mockSession = {
+      access_token: 'mock-token',
+      token_type: 'bearer',
+      expires_in: 3600,
+      refresh_token: 'mock-refresh',
+      user: mockUser,
+    } as Session;
+
+    setUser(mockUser);
+    setSession(mockSession);
+    localStorage.setItem('mock-session', JSON.stringify(mockSession));
+    
+    return { error: null };
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl
-      }
-    });
-    return { error };
+    // Same as signIn for prototype - just log them in
+    return signIn(email, password);
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-      navigate('/');
-    }
-    return { error };
+    // Clear mock session
+    localStorage.removeItem('mock-session');
+    setUser(null);
+    setSession(null);
+    navigate('/');
+    return { error: null };
   };
 
   return {
