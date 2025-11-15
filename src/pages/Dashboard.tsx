@@ -77,82 +77,78 @@ const Dashboard = () => {
     <DashboardLayout>
       {currentView === 'welcome' && (
         <div className="space-y-8">
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 max-w-3xl mx-auto">
             <h1 className="text-4xl font-bold text-foreground">
               Welcome to Lease Fairy
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Upload your lease document to get started with AI-powered analysis
+            <p className="text-lg text-muted-foreground">
+              Upload your rental agreement to get instant AI analysis, identify red flags, and understand your rights
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setCurrentView('upload')}>
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Upload className="w-6 h-6 text-primary" />
+          <Card className="max-w-2xl mx-auto border-2 border-dashed border-primary/30 bg-card/50 hover:border-primary/50 transition-all">
+            <CardContent className="pt-12 pb-12">
+              <div className="text-center space-y-6">
+                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                  <Upload className="w-10 h-10 text-primary" />
                 </div>
-                <CardTitle>Upload Lease</CardTitle>
-                <CardDescription>
-                  Upload your PDF or document for instant analysis
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4">
-                  <FileText className="w-6 h-6 text-secondary" />
-                </div>
-                <CardTitle>AI Analysis</CardTitle>
-                <CardDescription>
-                  Get detailed breakdown in simple language
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="w-6 h-6 text-accent" />
-                </div>
-                <CardTitle>Red Flags</CardTitle>
-                <CardDescription>
-                  Identify concerning clauses automatically
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-
-          <Card className="bg-muted/30 border-2 border-dashed">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <Upload className="w-16 h-16 mx-auto text-muted-foreground" />
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    Ready to analyze your lease?
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Click below to upload your document and get started
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-semibold text-foreground">
+                    Upload Your Lease Agreement
+                  </h2>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    Upload a PDF of your rental agreement to receive a comprehensive analysis in plain language
                   </p>
-                  <button
-                    onClick={() => setCurrentView('upload')}
-                    className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
-                  >
-                    Upload Your Lease
-                  </button>
                 </div>
+                <button
+                  onClick={() => setCurrentView('upload')}
+                  className="px-8 py-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  Get Started
+                </button>
               </div>
             </CardContent>
           </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
+            <div className="text-center space-y-3 p-6">
+              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
+                <FileText className="w-6 h-6 text-accent" />
+              </div>
+              <h3 className="font-semibold text-foreground">Simple Breakdown</h3>
+              <p className="text-sm text-muted-foreground">
+                Complex legal terms translated into easy-to-understand language
+              </p>
+            </div>
+
+            <div className="text-center space-y-3 p-6">
+              <div className="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center mx-auto">
+                <Shield className="w-6 h-6 text-warning" />
+              </div>
+              <h3 className="font-semibold text-foreground">Red Flag Detection</h3>
+              <p className="text-sm text-muted-foreground">
+                Automatically identify potentially unfair or concerning clauses
+              </p>
+            </div>
+
+            <div className="text-center space-y-3 p-6">
+              <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mx-auto">
+                <Upload className="w-6 h-6 text-success" />
+              </div>
+              <h3 className="font-semibold text-foreground">Instant Analysis</h3>
+              <p className="text-sm text-muted-foreground">
+                Get your comprehensive lease analysis in minutes
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
       {currentView === 'upload' && (
-        <div>
+        <div className="max-w-4xl mx-auto">
           <button
             onClick={() => setCurrentView('welcome')}
-            className="mb-6 text-muted-foreground hover:text-foreground transition-colors"
+            className="mb-6 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
           >
             ← Back to Dashboard
           </button>
@@ -161,13 +157,15 @@ const Dashboard = () => {
       )}
 
       {currentView === 'analysis' && analysisData && (
-        <div>
-          <button
-            onClick={handleNewAnalysis}
-            className="mb-6 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Analyze Another Lease
-          </button>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={handleNewAnalysis}
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+            >
+              ← Analyze Another Lease
+            </button>
+          </div>
           <LeaseAnalysis analysis={analysisData} />
         </div>
       )}

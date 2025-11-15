@@ -111,7 +111,10 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
         body: formData,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error('Unable to connect to analysis service. Please check your internet connection and try again.');
+      }
 
       if (data.success && data.analysis) {
         toast({
@@ -120,13 +123,13 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
         });
         onAnalyze(data.analysis);
       } else {
-        throw new Error(data.error || 'Analysis failed');
+        throw new Error(data.error || 'Unable to analyze the document. Please ensure the PDF contains a valid lease agreement.');
       }
     } catch (error) {
       console.error('Analysis error:', error);
       toast({
-        title: "Analysis failed",
-        description: error instanceof Error ? error.message : "Please try again later.",
+        title: "Unable to analyze lease",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try uploading a different PDF or try again later.",
         variant: "destructive",
       });
     } finally {
@@ -135,10 +138,26 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
   };
 
   return (
-    <section className="max-w-2xl mx-auto px-4 py-12">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-foreground mb-3">Upload Your Lease</h2>
-        <p className="text-muted-foreground">Drop your PDF lease agreement below for instant analysis</p>
+    <section className="max-w-3xl mx-auto px-4 py-8">
+      <div className="text-center mb-10 space-y-3">
+        <h2 className="text-3xl font-bold text-foreground">Upload Your Lease Agreement</h2>
+        <p className="text-muted-foreground text-lg">
+          Upload a PDF of your rental lease to receive instant AI-powered analysis
+        </p>
+        <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground pt-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-success rounded-full"></div>
+            <span>Plain language summary</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-success rounded-full"></div>
+            <span>Red flag detection</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-success rounded-full"></div>
+            <span>Key dates & terms</span>
+          </div>
+        </div>
       </div>
 
       <div
@@ -148,24 +167,27 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-2xl p-12 transition-all duration-300 ${
           isDragging 
-            ? "border-accent bg-accent/5 scale-105" 
-            : "border-border hover:border-accent/50 hover:bg-accent/5"
+            ? "border-primary bg-primary/5 scale-[1.02] shadow-lg" 
+            : "border-border hover:border-primary/50 hover:bg-accent/5"
         }`}
       >
         {!file ? (
-          <div className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center">
-              <Upload className="h-8 w-8 text-accent" />
+          <div className="text-center space-y-6">
+            <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+              <Upload className="h-10 w-10 text-primary" />
             </div>
-            <div>
-              <p className="text-lg font-medium text-foreground mb-1">
-                Drag & drop your lease here
+            <div className="space-y-2">
+              <p className="text-xl font-semibold text-foreground">
+                Drop your lease PDF here
               </p>
-              <p className="text-sm text-muted-foreground">or</p>
+              <p className="text-sm text-muted-foreground">or click to browse</p>
             </div>
             <label htmlFor="file-upload">
-              <Button variant="outline" className="cursor-pointer" asChild>
-                <span>Browse Files</span>
+              <Button size="lg" className="cursor-pointer" asChild>
+                <span>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Choose File
+                </span>
               </Button>
               <input
                 id="file-upload"
@@ -175,42 +197,53 @@ export const LeaseUpload = ({ onFileSelect, onAnalyze }: LeaseUploadProps) => {
                 onChange={handleFileInput}
               />
             </label>
-            <p className="text-xs text-muted-foreground">PDF files only • Max 20MB</p>
+            <p className="text-xs text-muted-foreground pt-2">
+              Supports PDF files up to 20MB • Your data is secure and private
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center justify-between bg-muted rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-accent" />
+            <div className="flex items-center justify-between bg-card border border-border rounded-xl p-5 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">{file.name}</p>
+                  <p className="font-semibold text-foreground">{file.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                    {(file.size / 1024 / 1024).toFixed(2)} MB • Ready to analyze
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={removeFile} disabled={isAnalyzing}>
-                <X className="h-4 w-4" />
+              <Button variant="ghost" size="icon" onClick={removeFile} disabled={isAnalyzing}>
+                <X className="h-5 w-5" />
               </Button>
             </div>
 
             <Button 
-              className="w-full bg-primary hover:bg-primary/90" 
+              className="w-full bg-primary hover:bg-primary/90 shadow-lg" 
               size="lg"
               onClick={handleAnalyze}
               disabled={isAnalyzing}
             >
               {isAnalyzing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing Lease...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Analyzing Your Lease...
                 </>
               ) : (
-                'Analyze My Lease'
+                <>
+                  <FileText className="mr-2 h-5 w-5" />
+                  Analyze My Lease
+                </>
               )}
             </Button>
+            
+            {isAnalyzing && (
+              <p className="text-center text-sm text-muted-foreground animate-pulse">
+                This may take 30-60 seconds. We're reading through your lease...
+              </p>
+            )}
           </div>
         )}
       </div>
