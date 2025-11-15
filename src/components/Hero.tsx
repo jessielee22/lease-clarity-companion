@@ -1,11 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import logoImage from "@/assets/lease-fairy-logo.png";
+import backgroundImage from "@/assets/lease-background.jpg";
 
 export const Hero = ({ onUploadClick }: { onUploadClick: () => void }) => {
   return (
-    <section className="min-h-[90vh] flex items-center justify-center px-4 py-12">
-      <div className="max-w-4xl mx-auto text-center space-y-8">
+    <section className="min-h-[90vh] flex items-center justify-center px-4 py-12 relative">
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-50"
+        style={{ backgroundImage: `url(${backgroundImage})` }}
+      />
+      <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
         <div className="flex justify-center mb-6">
           <img 
             src={logoImage} 
